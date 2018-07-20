@@ -1,0 +1,127 @@
+
+1.tf.squeeze():删除所有size为1的dimension
+
+2.tf.get_variable(name, shape=None, dtype=tf.float32, initializer=None,
+       regularizer=None, trainable=True, collections=None)：
+获取已经存在的变量，若不存在就创建一个  （是不是获取对应名称的变量）
+tf.Variable(<initial-value>, name=<optional-name>)
+创建一个变量，注意，get_variable 里面变量名是必填的，而Variable里面变量名是可选的，get_variable会根据这个名字来获取或者创建变量。
+
+3.tf.Variable(<initial-value>, name=<optional-name>)：
+生成一个新的变量，必须指定初始化的值
+
+4.reduce_sum(
+    input_tensor,
+    axis=None,
+    keep_dims=False,
+    name=None,
+    reduction_indices=None
+)
+eg:
+# 'x' is [[1, 1, 1]
+#         [1, 1, 1]]
+tf.reduce_sum(x) ==> 6
+tf.reduce_sum(x, 0) ==> [2, 2, 2]
+tf.reduce_sum(x, 1) ==> [3, 3]
+tf.reduce_sum(x, 1, keep_dims=True) ==> [[3], [3]]
+tf.reduce_sum(x, [0, 1]) ==> 6
+
+5.tf.shape(xxx) vs. xxx.get_shape()
+相同点：都可以得到tensor xxx 的尺寸
+不同点：tf.shape(xxx)中xxx数据的类型可以是tensor,list,array；而xxx.get_shape()中的xxx的数据类型必须是tensor,且返回的是一个tuple.可以通过xxx.get_shape().as_list()得到一个list。
+
+eg:
+
+x= tf.truncated_normal([32, 32, 3], dtype=tf.float32)
+print(tf.shape(x))
+print(x.get_shape())
+print(x.get_shape().as_list())
+
+输出：
+
+Tensor("Shape:0", shape=(3,), dtype=int32)
+(32, 32, 3)
+[32, 32, 3]
+
+6.tf.concat([concat value], concat dimension)
+eg:
+t1 = [[1, 2, 3], [4, 5, 6]]
+t2 = [[7, 8, 9], [10, 11, 12]]
+a = tf.concat([t1, t2],0)
+
+print (a.get_shape())
+(4,3)   [[1, 2, 3], [4, 5, 6], [7, 8, 9], [10, 11, 12]]
+
+若改为 a = tf.concat([t1, t2],1)
+则输出(2,6)  [[1, 2, 3, 7, 8, 9], [4, 5, 6, 10, 11, 12]]
+分别为横向相连和纵向相连，注意，list中的每一项的size都必须相同，若将[4,5,6]改为[4,5]那么将会报错
+
+7.tf.split(
+    value,    #输入张量
+    num_or_size_splits,  #每个分割后的张量的尺寸
+    axis=0,  #被分张量的分割标准//当axis=0时按行分，当axis=1时，按列分。
+    num=None,
+    name='split'
+)
+此函数可以用于分割tensor或者list。
+例子：
+value = [[1, 2, 3], [4, 5, 6],[7,8,9]]
+
+split0, split1 = tf.split(value, [1, 2], 0)
+with tf.Session() as sess:
+    print(sess.run(split0))
+    print(sess.run(split1))
+可以得到：
+[[1 2 3]]
+[[4 5 6]
+ [7 8 9]]
+
+value是传入的tensor，第二项是每一个返回值的尺寸，此例中所使用的[1,2]表示第一个返回项取一个element，第二个返回项取两个element，axis = 0表示从横轴取值。
+
+相似的，我们若将分割方式改成：split0, split1,split2 = tf.split(value, [1, 2,0], 1)，并print split2的值，那么会得到
+[[1]
+ [4]
+ [7]]
+[[2 3]
+ [5 6]
+ [8 9]]
+[]
+可见，axis = 1时是从纵轴进行切割的，并且最后一项split2没有取到值，因为[1,2,0]的切割方式不会给split2任何值。
+不管是切割方式还是axis不正确，函数都会报错且不能正常运行，且输入的tensor必须满足要求。
+
+8.make_template(
+    name_,
+    func_,
+    create_scope_now_=False,
+    unique_name_=None,
+    custom_getter_=None,
+    **kwargs
+)给定一个任意函数，将其包装，以便它进行变量共享。 
+详情可见https://www.w3cschool.cn/tensorflow_python/tensorflow_python-yt182fa1.html
+
+9.tf.clip_by_value(A, 2, 5)
+将一个tensor或者其他类别的变量的范围缩减到2到5之间，超过2或者5的值都会被取到2或者5
+
+10.batch normalization:
+对于每个隐层神经元，把逐渐向非线性函数映射后向取值区间极限饱和区靠拢的输入分布强制拉回到均值为0方差为1的比较标准的正态分布，使得非线性变换函数的输入值落入对输入比较敏感的区域，以此避免梯度消失问题.
+(https://blog.csdn.net/malefactor/article/details/51476961)
+
+11. tf.variable_scope和tf.name_scope：
+tf.variable_scope（'name'） 可以为变量附加名字，对tf.get_variable和tf.Variable都可用。
+tf.name_scope('name') 只可以对tf.Variable附加名字，对tf.get_variable是无效的，也就是说不会为它附加名字。
+此外， with tf.name_scope('name') as scope:
+的用法并不可用，scope只会被当做一个string。
+如果是 with tf.variable_scope('name') as scope:  scope 则会被当做一个VariableScope object，并且可由此定义get_variable 的复用属性.
+在name_scope中不可定义能够reuse的tf.get_variable
+
+
+
+
+
+
+
+
+
+
+
+
